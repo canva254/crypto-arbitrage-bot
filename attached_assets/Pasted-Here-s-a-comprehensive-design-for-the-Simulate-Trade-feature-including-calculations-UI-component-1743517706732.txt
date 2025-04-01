@@ -1,0 +1,172 @@
+Here's a comprehensive design for the "Simulate Trade" feature, including calculations, UI components, and integration with your existing bot:
+1. Simulation Input Panel
+tsx
+Copy
+
+<SimulationForm>
+  // Asset Selection
+  <TokenPairSelector 
+    baseToken="ETH" 
+    quoteToken="USDT"
+  />
+
+  // Trade Parameters
+  <InputGroup>
+    <Label>Trade Amount</Label>
+    <Input value={1000} unit="USDT" />
+  </InputGroup>
+
+  // Strategy Options
+  <StrategyOptions>
+    <Checkbox label="Use Flash Loan (Aave)" />
+    <Checkbox label="Enable MEV Protection" />
+  </StrategyOptions>
+
+  // Advanced Settings
+  <Accordion title="Advanced Parameters">
+    <Slider label="Max Slippage" min={0.1} max={5} step={0.1} unit="%" />
+    <GasPrioritySelector options={["Low", "Medium", "High"]} />
+  </Accordion>
+</SimulationForm>
+
+2. Fee Calculation Breakdown
+tsx
+Copy
+
+<FeeBreakdown>
+  <FeeItem label="Exchange Fees" value={2.30} currency="USDT" />
+  <FeeItem label="Gas Fees" value={0.005} currency="ETH" />
+  <FeeItem label="Flash Loan Fee" value={0.09} currency="USDT" />
+  <FeeItem label="Slippage Impact" value={-0.57} currency="%" warning />
+  <Divider />
+  <TotalFee label="Total Costs" value={2.89} currency="USDT" />
+</FeeBreakdown>
+
+3. Simulation Process Flow
+mermaid
+Copy
+
+sequenceDiagram
+  participant User
+  participant UI
+  participant Backend
+  participant Blockchain
+
+  User->>UI: Enters trade parameters
+  UI->>Backend: Request price data
+  Backend->>CEX: Fetch order book (Binance)
+  Backend->>DEX: Fetch pool liquidity (Uniswap)
+  Backend->>UI: Return market state
+  UI->>Backend: Request simulation
+  Backend->>SimEngine: Calculate:
+  Note right of SimEngine: 1. Price impact<br>2. Fees<br>3. Slippage<br>4. Loan costs
+  SimEngine->>UI: Return net profit estimate
+  UI->>User: Display results
+
+4. Simulation Results Display
+tsx
+Copy
+
+<SimulationResults>
+  <ProfitSummary>
+    <Badge variant="success">+2.15% Potential Profit</Badge>
+    <ComparisonChart 
+      gross={3.64} 
+      net={2.15} 
+      currency="USDT"
+    />
+  </ProfitSummary>
+
+  <LiquidityWarning>
+    <Icon name="alert" />
+    <Text color="warning">
+      Low liquidity: 5 ETH pool depth<br>
+      Potential slippage: 1.2%
+    </Text>
+  </LiquidityWarning>
+
+  <ActionButtons>
+    <Button variant="primary">Execute Trade</Button>
+    <Button variant="secondary">Save Simulation</Button>
+  </ActionButtons>
+</SimulationResults>
+
+5. Key Calculations
+A. Total Cost Formula
+python
+Copy
+
+def calculate_total_cost(trade_amount):
+    exchange_fee = trade_amount * cex_fee_rate
+    gas_cost = gas_price * gas_limit
+    flash_loan_fee = loan_amount * 0.0009  # Aave's 0.09% fee
+    slippage_cost = trade_amount * (slippage / 100)
+    
+    return exchange_fee + gas_cost + flash_loan_fee + slippage_cost
+
+B. Profit Simulation
+python
+Copy
+
+def simulate_trade(buy_price, sell_price, amount):
+    gross_profit = (sell_price - buy_price) * amount
+    net_profit = gross_profit - total_costs
+    
+    return {
+        'gross': gross_profit,
+        'net': net_profit,
+        'roi': (net_profit / amount) * 100
+    }
+
+6. UI Requirements
+
+    Real-Time Preview: Update calculations as users adjust parameters
+
+    Historical Comparison: Show previous similar trades' actual outcomes
+
+    Risk Indicators: Color-code results (green/red) based on profit thresholds
+
+    Export Options: Download simulation report as PDF/CSV
+
+7. Error States
+tsx
+Copy
+
+<ErrorState variant="insufficient-liquidity">
+  <Heading>⚠️ Trade Not Viable</Heading>
+  <Text>
+    Required liquidity: 10 ETH<br>
+    Available in pool: 4.2 ETH
+  </Text>
+  <Button>Adjust Amount</Button>
+</ErrorState>
+
+8. Integration Points
+
+    Price Oracle: Chainlink for accurate asset pricing
+
+    Gas Estimator: Etherscan Gas Tracker API
+
+    Slippage Calculator:
+    python
+    Copy
+
+    def calculate_slippage(pool, amount):
+        return (amount / pool.liquidity) * 100
+
+9. Security Considerations
+
+    Sandbox Mode: Ensure simulations never interact with real funds
+
+    Rate Limiting: Prevent API abuse through simulation spam
+
+    Input Validation: Sanitize all user-entered values
+
+10. Suggested Tech Stack
+Component	Technology
+Frontend	React + Recoil (state)
+Math Engine	math.js + BigNumber
+Visualization	Victory Charts
+Data Fetching	SWR + Web3.js
+
+This simulation feature would integrate seamlessly with your existing bot architecture while providing crucial pre-trade analysis.

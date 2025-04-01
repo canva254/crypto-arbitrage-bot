@@ -8,6 +8,7 @@ import OpportunityDetails from '@/components/dashboard/opportunity-details';
 import ChartsPanel from '@/components/dashboard/charts-panel';
 import { ApiKeysManager } from '@/components/dashboard/api-keys-manager';
 import { TradeExecutor } from '@/components/dashboard/trade-executor';
+import { TradeSimulator } from '@/components/dashboard/trade-simulator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Opportunity } from '@shared/schema';
 
@@ -123,6 +124,10 @@ export default function Dashboard() {
                 <div className="col-span-1">
                   <TradeExecutor />
                 </div>
+              </div>
+              
+              <div className="w-full">
+                <TradeSimulator />
               </div>
             </TabsContent>
           </Tabs>

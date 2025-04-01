@@ -293,3 +293,52 @@ export type InsertCrossChainBridge = z.infer<typeof insertCrossChainBridgeSchema
 
 export type FlashLoanProvider = typeof flashLoanProviders.$inferSelect;
 export type InsertFlashLoanProvider = z.infer<typeof insertFlashLoanProviderSchema>;
+
+// Trade Simulation schema
+export const tradeSimulations = pgTable("trade_simulations", {
+  id: serial("id").primaryKey(),
+  assetPair: text("asset_pair").notNull(),
+  buyExchange: text("buy_exchange").notNull(),
+  sellExchange: text("sell_exchange").notNull(),
+  initialAmount: numeric("initial_amount", { precision: 20, scale: 8 }).notNull(),
+  tradedAmount: numeric("traded_amount", { precision: 20, scale: 8 }).notNull(),
+  exchangeFees: numeric("exchange_fees", { precision: 20, scale: 8 }).notNull(),
+  gasFees: numeric("gas_fees", { precision: 20, scale: 8 }).notNull(),
+  flashLoanFees: numeric("flash_loan_fees", { precision: 20, scale: 8 }),
+  slippageImpact: numeric("slippage_impact", { precision: 10, scale: 2 }),
+  profitLoss: numeric("profit_loss", { precision: 20, scale: 8 }).notNull(),
+  profitPercentage: numeric("profit_percentage", { precision: 10, scale: 2 }).notNull(),
+  timestamp: text("timestamp"), // Using text instead of timestamp for compatibility with in-memory implementation
+  userId: text("user_id"),
+  useFlashLoan: boolean("use_flash_loan").default(false),
+  useMevProtection: boolean("use_mev_protection").default(false),
+  maxSlippage: numeric("max_slippage", { precision: 5, scale: 2 }),
+  gasPriority: text("gas_priority").default("medium"),
+  status: text("status").default("simulated"),
+  strategy: text("strategy").default("simple"),
+});
+
+export const insertTradeSimulationSchema = createInsertSchema(tradeSimulations).pick({
+  assetPair: true,
+  buyExchange: true,
+  sellExchange: true,
+  initialAmount: true,
+  tradedAmount: true,
+  exchangeFees: true,
+  gasFees: true,
+  flashLoanFees: true,
+  slippageImpact: true,
+  profitLoss: true,
+  profitPercentage: true,
+  timestamp: true,
+  userId: true,
+  useFlashLoan: true,
+  useMevProtection: true,
+  maxSlippage: true,
+  gasPriority: true,
+  status: true,
+  strategy: true,
+});
+
+export type TradeSimulation = typeof tradeSimulations.$inferSelect;
+export type InsertTradeSimulation = z.infer<typeof insertTradeSimulationSchema>;

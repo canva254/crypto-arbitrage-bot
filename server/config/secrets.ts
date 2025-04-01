@@ -74,25 +74,25 @@ export function getPrivateKey(network: string): string | null {
   
   switch (normalizedNetwork) {
     case 'ethereum':
-      return process.env.ETH_PRIVATE_KEY || null;
+      return process.env.ETH_WALLET_PRIVATE_KEY || null;
       
     case 'binance':
-      return process.env.BSC_PRIVATE_KEY || process.env.ETH_PRIVATE_KEY || null;
+      return process.env.BSC_PRIVATE_KEY || process.env.ETH_WALLET_PRIVATE_KEY || null;
       
     case 'polygon':
-      return process.env.POLYGON_PRIVATE_KEY || process.env.ETH_PRIVATE_KEY || null;
+      return process.env.POLYGON_PRIVATE_KEY || process.env.ETH_WALLET_PRIVATE_KEY || null;
       
     case 'avalanche':
-      return process.env.AVAX_PRIVATE_KEY || process.env.ETH_PRIVATE_KEY || null;
+      return process.env.AVAX_PRIVATE_KEY || process.env.ETH_WALLET_PRIVATE_KEY || null;
       
     case 'arbitrum':
-      return process.env.ARBITRUM_PRIVATE_KEY || process.env.ETH_PRIVATE_KEY || null;
+      return process.env.ARBITRUM_PRIVATE_KEY || process.env.ETH_WALLET_PRIVATE_KEY || null;
       
     case 'optimism':
-      return process.env.OPTIMISM_PRIVATE_KEY || process.env.ETH_PRIVATE_KEY || null;
+      return process.env.OPTIMISM_PRIVATE_KEY || process.env.ETH_WALLET_PRIVATE_KEY || null;
       
     case 'base':
-      return process.env.BASE_PRIVATE_KEY || process.env.ETH_PRIVATE_KEY || null;
+      return process.env.BASE_PRIVATE_KEY || process.env.ETH_WALLET_PRIVATE_KEY || null;
       
     default:
       return null;

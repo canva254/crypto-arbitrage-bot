@@ -6,6 +6,7 @@ import {
   GasPrice, InsertGasPrice,
   CrossChainBridge, InsertCrossChainBridge,
   FlashLoanProvider, InsertFlashLoanProvider,
+  TradeSimulation, InsertTradeSimulation,
   ExchangeStatusEnum, RiskLevelEnum, StrategyTypeEnum,
   ExchangeTypeEnum, NetworkEnum, BridgeStatusEnum
 } from "@shared/schema";
@@ -55,6 +56,13 @@ export interface IStorage {
   // Flash Loan Provider operations
   getFlashLoanProviders(network?: string): Promise<FlashLoanProvider[]>;
   addFlashLoanProvider(provider: InsertFlashLoanProvider): Promise<FlashLoanProvider>;
+  
+  // Trade Simulation operations
+  getTradeSimulations(userId?: string): Promise<TradeSimulation[]>;
+  getTradeSimulationById(id: number): Promise<TradeSimulation | undefined>;
+  addTradeSimulation(simulation: InsertTradeSimulation): Promise<TradeSimulation>;
+  updateTradeSimulation(id: number, status: string): Promise<TradeSimulation>;
+  deleteTradeSimulation(id: number): Promise<boolean>;
 }
 
 // MemStorage implementation
@@ -73,6 +81,7 @@ export class MemStorage implements IStorage {
   private gasPrices: Map<number, GasPrice>;
   private crossChainBridges: Map<number, CrossChainBridge>;
   private flashLoanProviders: Map<number, FlashLoanProvider>;
+  private tradeSimulations: Map<number, TradeSimulation>;
   
   private exchangeId: number;
   private opportunityId: number;
@@ -81,6 +90,7 @@ export class MemStorage implements IStorage {
   private gasPriceId: number;
   private bridgeId: number;
   private providerId: number;
+  private simulationId: number;
   
   // Utility function to create ISO timestamp string
   private createTimestamp(): string {
@@ -99,6 +109,7 @@ export class MemStorage implements IStorage {
     this.gasPrices = new Map();
     this.crossChainBridges = new Map();
     this.flashLoanProviders = new Map();
+    this.tradeSimulations = new Map();
     
     this.exchangeId = 1;
     this.opportunityId = 1;
@@ -107,6 +118,7 @@ export class MemStorage implements IStorage {
     this.gasPriceId = 1;
     this.bridgeId = 1;
     this.providerId = 1;
+    this.simulationId = 1;
     
     // Initialize with default exchanges
     this.initializeDefaultData();
@@ -407,6 +419,56 @@ export class MemStorage implements IStorage {
     // Add flash loan providers
     defaultProviders.forEach(provider => {
       this.addFlashLoanProvider(provider);
+    });
+    
+    // Initialize default trade simulations
+    const defaultSimulations: InsertTradeSimulation[] = [
+      {
+        assetPair: "ETH/USDT",
+        buyExchange: "Binance",
+        sellExchange: "Kraken",
+        initialAmount: "1000",
+        tradedAmount: "998.5",
+        exchangeFees: "2.5",
+        gasFees: "0",
+        profitLoss: "8.5",
+        profitPercentage: "0.85",
+        status: "simulated",
+        strategy: "simple"
+      },
+      {
+        assetPair: "BTC/USDT",
+        buyExchange: "Coinbase",
+        sellExchange: "Binance",
+        initialAmount: "10000",
+        tradedAmount: "9950",
+        exchangeFees: "50",
+        gasFees: "0",
+        profitLoss: "150",
+        profitPercentage: "1.5",
+        status: "simulated",
+        strategy: "simple"
+      },
+      {
+        assetPair: "ETH/USDT",
+        buyExchange: "Binance",
+        sellExchange: "Uniswap",
+        initialAmount: "2000",
+        tradedAmount: "1980",
+        exchangeFees: "5",
+        gasFees: "15",
+        profitLoss: "25",
+        profitPercentage: "1.25",
+        status: "simulated",
+        strategy: "cex_to_dex",
+        useFlashLoan: true,
+        flashLoanFees: "1.8"
+      }
+    ];
+    
+    // Add trade simulations
+    defaultSimulations.forEach(simulation => {
+      this.addTradeSimulation(simulation);
     });
 
     // Initialize default profit history for BTC/USDT
@@ -744,6 +806,79 @@ export class MemStorage implements IStorage {
     
     this.flashLoanProviders.set(newProvider.id, newProvider);
     return newProvider;
+  }
+
+  // Trade Simulation operations
+  async getTradeSimulations(userId?: string): Promise<TradeSimulation[]> {
+    let simulations = Array.from(this.tradeSimulations.values());
+    
+    if (userId) {
+      simulations = simulations.filter(sim => sim.userId === userId);
+    }
+    
+    // Sort by timestamp (newest first)
+    return simulations.sort((a, b) => {
+      // Safe handling of timestamps for string type
+      const dateA = a.timestamp ? new Date(a.timestamp) : new Date();
+      const dateB = b.timestamp ? new Date(b.timestamp) : new Date();
+      return dateB.getTime() - dateA.getTime();
+    });
+  }
+
+  async getTradeSimulationById(id: number): Promise<TradeSimulation | undefined> {
+    return this.tradeSimulations.get(id);
+  }
+
+  async addTradeSimulation(simulation: InsertTradeSimulation): Promise<TradeSimulation> {
+    const newSimulation: TradeSimulation = {
+      id: this.simulationId++,
+      assetPair: simulation.assetPair,
+      buyExchange: simulation.buyExchange,
+      sellExchange: simulation.sellExchange,
+      initialAmount: simulation.initialAmount,
+      tradedAmount: simulation.tradedAmount,
+      exchangeFees: simulation.exchangeFees,
+      gasFees: simulation.gasFees,
+      flashLoanFees: simulation.flashLoanFees || null,
+      slippageImpact: simulation.slippageImpact || null,
+      profitLoss: simulation.profitLoss,
+      profitPercentage: simulation.profitPercentage,
+      timestamp: simulation.timestamp || this.createTimestamp(),
+      userId: simulation.userId || null,
+      useFlashLoan: simulation.useFlashLoan || false,
+      useMevProtection: simulation.useMevProtection || false,
+      maxSlippage: simulation.maxSlippage || null,
+      gasPriority: simulation.gasPriority || "medium",
+      status: simulation.status || "simulated",
+      strategy: simulation.strategy || "simple"
+    };
+    
+    this.tradeSimulations.set(newSimulation.id, newSimulation);
+    return newSimulation;
+  }
+
+  async updateTradeSimulation(id: number, status: string): Promise<TradeSimulation> {
+    const simulation = await this.getTradeSimulationById(id);
+    if (!simulation) {
+      throw new Error(`Simulation with ID ${id} not found`);
+    }
+    
+    const updatedSimulation: TradeSimulation = {
+      ...simulation,
+      status
+    };
+    
+    this.tradeSimulations.set(id, updatedSimulation);
+    return updatedSimulation;
+  }
+
+  async deleteTradeSimulation(id: number): Promise<boolean> {
+    const simulation = await this.getTradeSimulationById(id);
+    if (!simulation) {
+      return false;
+    }
+    
+    return this.tradeSimulations.delete(id);
   }
 }
 

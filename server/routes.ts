@@ -5,6 +5,7 @@ import { z } from "zod";
 import { 
   insertExchangeSchema, insertOpportunitySchema, insertStatsSchema,
   insertLiquidityPoolSchema, insertGasPriceSchema, insertCrossChainBridgeSchema, insertFlashLoanProviderSchema,
+  insertTradeSimulationSchema,
   ExchangeStatusEnum, RiskLevelEnum, StrategyTypeEnum, BridgeStatusEnum, ExchangeTypeEnum, NetworkEnum 
 } from "@shared/schema";
 import { startArbitrageScanner, stopArbitrageScanner } from "./services/arbitrage";
@@ -354,6 +355,136 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error executing arbitrage opportunity:", error);
       res.status(500).json({ 
         error: "Failed to execute arbitrage opportunity",
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // API endpoints for trade simulations
+  
+  // API endpoint to get trade simulations with optional user filtering
+  app.get("/api/simulations", async (req, res) => {
+    try {
+      const userId = req.query.userId as string;
+      
+      const simulations = await storage.getTradeSimulations(userId);
+      res.json(simulations);
+    } catch (error) {
+      console.error("Error fetching trade simulations:", error);
+      res.status(500).json({ error: "Failed to fetch trade simulations" });
+    }
+  });
+
+  // API endpoint to get a specific trade simulation by ID
+  app.get("/api/simulations/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const simulation = await storage.getTradeSimulationById(id);
+      
+      if (!simulation) {
+        return res.status(404).json({ error: "Simulation not found" });
+      }
+      
+      res.json(simulation);
+    } catch (error) {
+      console.error("Error fetching trade simulation:", error);
+      res.status(500).json({ error: "Failed to fetch trade simulation" });
+    }
+  });
+
+  // API endpoint to create a new trade simulation
+  app.post("/api/simulations", async (req, res) => {
+    try {
+      const validatedData = insertTradeSimulationSchema.parse(req.body);
+      const simulation = await storage.addTradeSimulation(validatedData);
+      res.json(simulation);
+    } catch (error) {
+      console.error("Error creating trade simulation:", error);
+      res.status(400).json({ error: "Invalid trade simulation data" });
+    }
+  });
+
+  // API endpoint to update a trade simulation status
+  app.patch("/api/simulations/:id/status", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const statusSchema = z.object({
+        status: z.enum(["simulated", "executed", "failed", "pending"])
+      });
+      const { status } = statusSchema.parse(req.body);
+      
+      const simulation = await storage.updateTradeSimulation(id, status);
+      res.json(simulation);
+    } catch (error) {
+      console.error("Error updating trade simulation status:", error);
+      res.status(400).json({ error: "Invalid status data" });
+    }
+  });
+
+  // API endpoint to delete a trade simulation
+  app.delete("/api/simulations/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteTradeSimulation(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Simulation not found" });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting trade simulation:", error);
+      res.status(500).json({ error: "Failed to delete trade simulation" });
+    }
+  });
+
+  // API endpoint to execute a simulated trade
+  app.post("/api/simulations/:id/execute", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Fetch the simulation
+      const simulation = await storage.getTradeSimulationById(id);
+      if (!simulation) {
+        return res.status(404).json({ error: "Simulation not found" });
+      }
+      
+      // Create an opportunity based on the simulation
+      const opportunity = await storage.addOpportunity({
+        assetPair: simulation.assetPair,
+        buyExchange: simulation.buyExchange,
+        sellExchange: simulation.sellExchange,
+        buyPrice: "0", // This would be filled with real data
+        sellPrice: "0", // This would be filled with real data
+        profitPercentage: simulation.profitPercentage,
+        volume: simulation.initialAmount,
+        isActive: true,
+        strategy: simulation.strategy || "simple",
+        risk: "medium",  // Default risk level
+        estimatedProfit: "0", // Calculate this based on the percentage and volume
+        route: `${simulation.buyExchange} -> ${simulation.sellExchange}` // Simple route representation
+      });
+      
+      // Execute the opportunity
+      console.log(`Executing simulated trade #${id} as opportunity #${opportunity.id}...`);
+      const result = await executeArbitrage(opportunity.id);
+      
+      // Update the simulation status based on execution result
+      if (result.success) {
+        await storage.updateTradeSimulation(id, "executed");
+      } else {
+        await storage.updateTradeSimulation(id, "failed");
+      }
+      
+      // Return the execution result
+      res.json({
+        ...result,
+        simulationId: id
+      });
+    } catch (error) {
+      console.error("Error executing simulated trade:", error);
+      res.status(500).json({ 
+        error: "Failed to execute simulated trade",
         details: error instanceof Error ? error.message : "Unknown error"
       });
     }
