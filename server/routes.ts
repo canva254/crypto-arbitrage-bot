@@ -9,6 +9,7 @@ import {
 } from "@shared/schema";
 import { startArbitrageScanner, stopArbitrageScanner } from "./services/arbitrage";
 import { setupExchanges } from "./services/exchanges";
+import { executeArbitrage } from "./services/execution";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize exchanges and start arbitrage scanner
@@ -57,6 +58,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating exchange status:", error);
       res.status(400).json({ error: "Invalid status data" });
+    }
+  });
+  
+  // API endpoint to update exchange API keys
+  app.patch("/api/exchanges/:id/keys", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const keysSchema = z.object({
+        apiKey: z.string(),
+        apiSecret: z.string(),
+        additionalParams: z.record(z.string()).optional()
+      });
+      
+      const keys = keysSchema.parse(req.body);
+      
+      // Get the exchange
+      const exchange = await storage.getExchangeById(id);
+      if (!exchange) {
+        return res.status(404).json({ error: "Exchange not found" });
+      }
+      
+      // Update the exchange with new API keys
+      const updatedExchange = await storage.upsertExchange({
+        ...exchange,
+        apiKey: keys.apiKey,
+        apiSecret: keys.apiSecret
+      });
+      
+      // For security, don't return the actual API keys in the response
+      const returnExchange = {
+        ...updatedExchange,
+        apiKey: updatedExchange.apiKey ? "[API KEY SET]" : null,
+        apiSecret: updatedExchange.apiSecret ? "[API SECRET SET]" : null
+      };
+      
+      res.json(returnExchange);
+    } catch (error) {
+      console.error("Error updating exchange API keys:", error);
+      res.status(400).json({ error: "Invalid API key data" });
     }
   });
 
@@ -285,6 +325,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error adding flash loan provider:", error);
       res.status(400).json({ error: "Invalid flash loan provider data" });
+    }
+  });
+  
+  // API endpoint to execute an arbitrage opportunity
+  app.post("/api/opportunities/:id/execute", async (req, res) => {
+    try {
+      const opportunityId = parseInt(req.params.id);
+      
+      // Validate that the opportunity exists
+      const opportunity = await storage.getOpportunityById(opportunityId);
+      if (!opportunity) {
+        return res.status(404).json({ error: "Opportunity not found" });
+      }
+      
+      // Check if opportunity is still active
+      if (!opportunity.isActive) {
+        return res.status(400).json({ error: "Opportunity is no longer active" });
+      }
+      
+      // Execute the arbitrage opportunity
+      console.log(`Executing arbitrage opportunity #${opportunityId}...`);
+      const result = await executeArbitrage(opportunityId);
+      
+      // Return the execution result
+      res.json(result);
+    } catch (error) {
+      console.error("Error executing arbitrage opportunity:", error);
+      res.status(500).json({ 
+        error: "Failed to execute arbitrage opportunity",
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 

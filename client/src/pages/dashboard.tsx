@@ -6,6 +6,9 @@ import StatusPanel from '@/components/dashboard/status-panel';
 import OpportunitiesTable from '@/components/dashboard/opportunities-table';
 import OpportunityDetails from '@/components/dashboard/opportunity-details';
 import ChartsPanel from '@/components/dashboard/charts-panel';
+import { ApiKeysManager } from '@/components/dashboard/api-keys-manager';
+import { TradeExecutor } from '@/components/dashboard/trade-executor';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Opportunity } from '@shared/schema';
 
 export default function Dashboard() {
@@ -54,6 +57,8 @@ export default function Dashboard() {
     }
   }, [opportunities, selectedOpportunity]);
 
+  const [activeTab, setActiveTab] = useState('monitoring');
+  
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
@@ -79,26 +84,48 @@ export default function Dashboard() {
             isLoading={isLoadingExchanges || isLoadingStats}
           />
           
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-6">
-            <div className="col-span-1 xl:col-span-2">
-              <OpportunitiesTable 
-                opportunities={opportunities || []} 
-                isLoading={isLoadingOpportunities}
-                error={opportunitiesError}
-                selectedOpportunityId={selectedOpportunity?.id}
-                onSelectOpportunity={handleSelectOpportunity}
-              />
-            </div>
+          <Tabs defaultValue="monitoring" className="w-full mb-6" onValueChange={setActiveTab}>
+            <TabsList className="grid w-full max-w-md grid-cols-2 mb-4">
+              <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
+              <TabsTrigger value="execution">Execution</TabsTrigger>
+            </TabsList>
             
-            <div className="col-span-1">
-              <OpportunityDetails 
-                opportunity={selectedOpportunity}
-                isLoading={isLoadingOpportunities} 
-              />
-            </div>
-          </div>
-          
-          <ChartsPanel opportunities={opportunities || []} />
+            {/* Monitoring Tab */}
+            <TabsContent value="monitoring" className="space-y-6">
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-6">
+                <div className="col-span-1 xl:col-span-2">
+                  <OpportunitiesTable 
+                    opportunities={opportunities || []} 
+                    isLoading={isLoadingOpportunities}
+                    error={opportunitiesError}
+                    selectedOpportunityId={selectedOpportunity?.id}
+                    onSelectOpportunity={handleSelectOpportunity}
+                  />
+                </div>
+                
+                <div className="col-span-1">
+                  <OpportunityDetails 
+                    opportunity={selectedOpportunity}
+                    isLoading={isLoadingOpportunities} 
+                  />
+                </div>
+              </div>
+              
+              <ChartsPanel opportunities={opportunities || []} />
+            </TabsContent>
+            
+            {/* Execution Tab */}
+            <TabsContent value="execution" className="space-y-6">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <div className="col-span-1">
+                  <ApiKeysManager />
+                </div>
+                <div className="col-span-1">
+                  <TradeExecutor />
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </main>
       </div>
     </div>

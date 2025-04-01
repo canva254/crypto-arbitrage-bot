@@ -119,7 +119,7 @@ export class MemStorage implements IStorage {
       { name: 'Coinbase', isActive: true, status: ExchangeStatusEnum.ONLINE, exchangeType: ExchangeTypeEnum.CEX },
       { name: 'Kraken', isActive: true, status: ExchangeStatusEnum.ONLINE, exchangeType: ExchangeTypeEnum.CEX },
       { name: 'Kucoin', isActive: true, status: ExchangeStatusEnum.RATE_LIMITED, exchangeType: ExchangeTypeEnum.CEX },
-      { name: 'FTX', isActive: true, status: ExchangeStatusEnum.ERROR, exchangeType: ExchangeTypeEnum.CEX },
+      { name: 'Bitfinex', isActive: true, status: ExchangeStatusEnum.ONLINE, exchangeType: ExchangeTypeEnum.CEX },
     ];
     
     // Add default DEX exchanges

@@ -7,7 +7,7 @@ export const SUPPORTED_EXCHANGES = [
   { id: 'coinbase', name: 'Coinbase', logo: 'coinbase', type: 'cex' },
   { id: 'kraken', name: 'Kraken', logo: 'kraken', type: 'cex' },
   { id: 'kucoin', name: 'Kucoin', logo: 'kucoin', type: 'cex' },
-  { id: 'ftx', name: 'FTX', logo: 'ftx', type: 'cex' },
+  { id: 'bitfinex', name: 'Bitfinex', logo: 'bitfinex', type: 'cex' },
   
   // Decentralized Exchanges (DEX)
   { id: 'uniswap', name: 'Uniswap', logo: 'uniswap', type: 'dex' },
@@ -51,7 +51,7 @@ export const EXCHANGE_FEES = {
   coinbase: 0.5,
   kraken: 0.26,
   kucoin: 0.1,
-  ftx: 0.07,
+  bitfinex: 0.1,
   
   // DEX Fees
   uniswap: 0.3,
