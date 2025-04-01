@@ -2,7 +2,11 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
-import { insertExchangeSchema, insertOpportunitySchema, insertStatsSchema, ExchangeStatusEnum, RiskLevelEnum, StrategyTypeEnum } from "@shared/schema";
+import { 
+  insertExchangeSchema, insertOpportunitySchema, insertStatsSchema,
+  insertLiquidityPoolSchema, insertGasPriceSchema, insertCrossChainBridgeSchema, insertFlashLoanProviderSchema,
+  ExchangeStatusEnum, RiskLevelEnum, StrategyTypeEnum, BridgeStatusEnum, ExchangeTypeEnum, NetworkEnum 
+} from "@shared/schema";
 import { startArbitrageScanner, stopArbitrageScanner } from "./services/arbitrage";
 import { setupExchanges } from "./services/exchanges";
 
@@ -135,6 +139,152 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching price comparison:", error);
       res.status(500).json({ error: "Failed to fetch price comparison" });
+    }
+  });
+
+  // DEX-specific API endpoints
+  
+  // API endpoint to get liquidity pools with optional filtering
+  app.get("/api/dex/liquidity-pools", async (req, res) => {
+    try {
+      const exchange = req.query.exchange as string;
+      const network = req.query.network as string;
+      
+      const pools = await storage.getLiquidityPools(exchange, network);
+      res.json(pools);
+    } catch (error) {
+      console.error("Error fetching liquidity pools:", error);
+      res.status(500).json({ error: "Failed to fetch liquidity pools" });
+    }
+  });
+
+  // API endpoint to get a specific liquidity pool by pair
+  app.get("/api/dex/liquidity-pools/:exchange/:network/:pair", async (req, res) => {
+    try {
+      const { exchange, network, pair } = req.params;
+      const pool = await storage.getLiquidityPoolByPair(exchange, network, pair);
+      
+      if (!pool) {
+        return res.status(404).json({ error: "Liquidity pool not found" });
+      }
+      
+      res.json(pool);
+    } catch (error) {
+      console.error("Error fetching liquidity pool:", error);
+      res.status(500).json({ error: "Failed to fetch liquidity pool" });
+    }
+  });
+
+  // API endpoint to add a new liquidity pool
+  app.post("/api/dex/liquidity-pools", async (req, res) => {
+    try {
+      const validatedData = insertLiquidityPoolSchema.parse(req.body);
+      const pool = await storage.addLiquidityPool(validatedData);
+      res.json(pool);
+    } catch (error) {
+      console.error("Error adding liquidity pool:", error);
+      res.status(400).json({ error: "Invalid liquidity pool data" });
+    }
+  });
+
+  // API endpoint to get latest gas prices for a network
+  app.get("/api/dex/gas-prices/:network", async (req, res) => {
+    try {
+      const { network } = req.params;
+      const gasPrice = await storage.getLatestGasPrices(network);
+      
+      if (!gasPrice) {
+        return res.status(404).json({ error: "Gas price data not found for this network" });
+      }
+      
+      res.json(gasPrice);
+    } catch (error) {
+      console.error("Error fetching gas prices:", error);
+      res.status(500).json({ error: "Failed to fetch gas prices" });
+    }
+  });
+
+  // API endpoint to add a new gas price entry
+  app.post("/api/dex/gas-prices", async (req, res) => {
+    try {
+      const validatedData = insertGasPriceSchema.parse(req.body);
+      const gasPrice = await storage.addGasPrice(validatedData);
+      res.json(gasPrice);
+    } catch (error) {
+      console.error("Error adding gas price:", error);
+      res.status(400).json({ error: "Invalid gas price data" });
+    }
+  });
+
+  // API endpoint to get cross-chain bridges with optional filtering
+  app.get("/api/dex/bridges", async (req, res) => {
+    try {
+      const sourceNetwork = req.query.sourceNetwork as string;
+      const destinationNetwork = req.query.destinationNetwork as string;
+      
+      const bridges = await storage.getCrossChainBridges(sourceNetwork, destinationNetwork);
+      res.json(bridges);
+    } catch (error) {
+      console.error("Error fetching cross-chain bridges:", error);
+      res.status(500).json({ error: "Failed to fetch cross-chain bridges" });
+    }
+  });
+
+  // API endpoint to add a new cross-chain bridge
+  app.post("/api/dex/bridges", async (req, res) => {
+    try {
+      const validatedData = insertCrossChainBridgeSchema.parse(req.body);
+      const bridge = await storage.addCrossChainBridge(validatedData);
+      res.json(bridge);
+    } catch (error) {
+      console.error("Error adding cross-chain bridge:", error);
+      res.status(400).json({ error: "Invalid cross-chain bridge data" });
+    }
+  });
+
+  // API endpoint to update a bridge status
+  app.patch("/api/dex/bridges/:id/status", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const statusSchema = z.object({
+        status: z.enum([
+          BridgeStatusEnum.ACTIVE,
+          BridgeStatusEnum.CONGESTED,
+          BridgeStatusEnum.OFFLINE
+        ])
+      });
+      const { status } = statusSchema.parse(req.body);
+      
+      const bridge = await storage.updateBridgeStatus(id, status);
+      res.json(bridge);
+    } catch (error) {
+      console.error("Error updating bridge status:", error);
+      res.status(400).json({ error: "Invalid status data" });
+    }
+  });
+
+  // API endpoint to get flash loan providers with optional network filtering
+  app.get("/api/dex/flash-loan-providers", async (req, res) => {
+    try {
+      const network = req.query.network as string;
+      
+      const providers = await storage.getFlashLoanProviders(network);
+      res.json(providers);
+    } catch (error) {
+      console.error("Error fetching flash loan providers:", error);
+      res.status(500).json({ error: "Failed to fetch flash loan providers" });
+    }
+  });
+
+  // API endpoint to add a new flash loan provider
+  app.post("/api/dex/flash-loan-providers", async (req, res) => {
+    try {
+      const validatedData = insertFlashLoanProviderSchema.parse(req.body);
+      const provider = await storage.addFlashLoanProvider(validatedData);
+      res.json(provider);
+    } catch (error) {
+      console.error("Error adding flash loan provider:", error);
+      res.status(400).json({ error: "Invalid flash loan provider data" });
     }
   });
 
