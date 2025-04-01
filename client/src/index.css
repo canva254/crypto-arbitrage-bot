@@ -11,3 +11,13 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
 }
+
+@layer components {
+  .card {
+    @apply bg-card text-card-foreground shadow-sm;
+  }
+  
+  .material-icons {
+    @apply inline-block align-middle;
+  }
+}

@@ -44,14 +44,14 @@ export default function OpportunitiesTable({
   };
 
   return (
-    <div className="card bg-surface rounded-lg">
-      <div className="p-4 border-b border-gray-700 flex justify-between items-center">
+    <div className="card rounded-lg">
+      <div className="p-4 border-b border-border flex justify-between items-center">
         <h3 className="font-medium">Live Arbitrage Opportunities</h3>
         <div className="flex items-center">
-          <button className="p-1 rounded-md text-gray-400 hover:text-white hover:bg-surface2" type="button">
+          <button className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted" type="button">
             <span className="material-icons text-sm">filter_list</span>
           </button>
-          <button className="p-1 rounded-md text-gray-400 hover:text-white hover:bg-surface2 ml-2" type="button">
+          <button className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted ml-2" type="button">
             <span className="material-icons text-sm">more_vert</span>
           </button>
         </div>
@@ -83,35 +83,37 @@ export default function OpportunitiesTable({
         <>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-700">
-              <thead className="bg-surface">
+              <thead className="bg-muted/50">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Asset Pair</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Strategy</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Route</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Profit</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Volume</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Risk</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Action</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Asset Pair</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Strategy</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Route</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Profit</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Volume</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Risk</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-700 bg-surface">
+              <tbody className="divide-y divide-border bg-card">
                 {currentItems.map((opportunity) => (
                   <tr 
                     key={opportunity.id}
-                    className={`hover:bg-surface2 cursor-pointer ${
-                      selectedOpportunityId === opportunity.id ? 'bg-primary bg-opacity-10' : ''
+                    className={`hover:bg-muted cursor-pointer ${
+                      selectedOpportunityId === opportunity.id ? 'bg-primary/10' : ''
                     }`}
                     onClick={() => onSelectOpportunity(opportunity)}
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary bg-opacity-20 flex items-center justify-center">
+                        <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
                           <span className="font-semibold">{opportunity.assetPair.split('/')[0]}</span>
                         </div>
                         <div className="ml-3">
                           <div className="text-sm font-medium">{opportunity.assetPair}</div>
-                          <div className="text-xs text-gray-400">
-                            Updated {formatDistanceToNow(new Date(opportunity.timestamp), { addSuffix: true })}
+                          <div className="text-xs text-muted-foreground">
+                            {opportunity.timestamp 
+                              ? `Updated ${formatDistanceToNow(new Date(opportunity.timestamp), { addSuffix: true })}`
+                              : 'Recently updated'}
                           </div>
                         </div>
                       </div>
@@ -119,8 +121,8 @@ export default function OpportunitiesTable({
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs rounded-full ${
                         opportunity.strategy.toLowerCase() === StrategyTypeEnum.SIMPLE 
-                          ? 'bg-primary bg-opacity-20 text-primary'
-                          : 'bg-secondary bg-opacity-20 text-secondary'
+                          ? 'bg-primary/20 text-primary'
+                          : 'bg-blue-400/20 text-blue-400'
                       }`}>
                         {opportunity.strategy}
                       </span>
@@ -131,10 +133,10 @@ export default function OpportunitiesTable({
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-success font-mono">
+                      <div className="text-sm font-medium text-green-500 font-mono">
                         +{parseFloat(opportunity.profitPercentage.toString()).toFixed(2)}%
                       </div>
-                      <div className="text-xs text-gray-400 font-mono">
+                      <div className="text-xs text-muted-foreground font-mono">
                         ≈ ${parseFloat(opportunity.estimatedProfit.toString()).toFixed(2)}
                       </div>
                     </td>
@@ -144,17 +146,17 @@ export default function OpportunitiesTable({
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs rounded-full ${
                         opportunity.risk.toLowerCase() === RiskLevelEnum.LOW
-                          ? 'bg-success bg-opacity-20 text-success'
+                          ? 'bg-green-500/20 text-green-500'
                           : opportunity.risk.toLowerCase() === RiskLevelEnum.MEDIUM
-                            ? 'bg-warning bg-opacity-20 text-warning'
-                            : 'bg-error bg-opacity-20 text-error'
+                            ? 'bg-yellow-500/20 text-yellow-500'
+                            : 'bg-red-500/20 text-red-500'
                       }`}>
                         {opportunity.risk.charAt(0).toUpperCase() + opportunity.risk.slice(1)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button 
-                        className="text-primary hover:text-primary-light px-2 py-1 rounded hover:bg-primary hover:bg-opacity-20"
+                        className="text-primary hover:text-primary/80 px-2 py-1 rounded hover:bg-primary/20"
                         onClick={(e) => {
                           e.stopPropagation();
                           onSelectOpportunity(opportunity);
@@ -169,13 +171,13 @@ export default function OpportunitiesTable({
             </table>
           </div>
           
-          <div className="p-4 border-t border-gray-700 flex justify-between items-center">
-            <div className="text-sm text-gray-400">
+          <div className="p-4 border-t border-border flex justify-between items-center">
+            <div className="text-sm text-muted-foreground">
               Showing {Math.min(opportunities.length, startIndex + 1)}-{Math.min(endIndex, opportunities.length)} of {opportunities.length} opportunities
             </div>
             <div className="flex items-center">
               <button 
-                className={`p-1 rounded-md ${currentPage === 1 ? 'bg-surface text-gray-600' : 'bg-surface2 text-gray-400 hover:text-white'} flex items-center justify-center h-8 w-8`}
+                className={`p-1 rounded-md ${currentPage === 1 ? 'bg-muted text-muted-foreground' : 'bg-muted text-foreground hover:bg-muted/80'} flex items-center justify-center h-8 w-8`}
                 onClick={handlePreviousPage}
                 disabled={currentPage === 1}
               >
@@ -187,8 +189,8 @@ export default function OpportunitiesTable({
                     key={i}
                     className={`p-1 rounded-md ${
                       currentPage === i + 1 
-                        ? 'bg-primary text-white' 
-                        : 'bg-surface2 text-gray-400 hover:text-white'
+                        ? 'bg-primary text-primary-foreground' 
+                        : 'bg-muted text-foreground hover:bg-muted/80'
                     } flex items-center justify-center h-8 w-8 ${i > 0 ? 'ml-1' : ''}`}
                     onClick={() => handleSelectPage(i + 1)}
                   >
@@ -197,7 +199,7 @@ export default function OpportunitiesTable({
                 ))}
               </div>
               <button 
-                className={`p-1 rounded-md ${currentPage === totalPages ? 'bg-surface text-gray-600' : 'bg-surface2 text-gray-400 hover:text-white'} flex items-center justify-center h-8 w-8`}
+                className={`p-1 rounded-md ${currentPage === totalPages ? 'bg-muted text-muted-foreground' : 'bg-muted text-foreground hover:bg-muted/80'} flex items-center justify-center h-8 w-8`}
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
               >

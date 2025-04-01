@@ -57,11 +57,11 @@ export default function Header({
   };
 
   return (
-    <header className="bg-surface border-b border-gray-700 py-2 px-4">
+    <header className="bg-card border-b border-border py-2 px-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <button 
-            className="md:hidden p-2 rounded-md text-gray-400 hover:text-white"
+            className="md:hidden p-2 rounded-md text-muted-foreground hover:text-foreground"
             type="button"
             onClick={handleToggleSidebar}
           >
@@ -75,17 +75,17 @@ export default function Header({
             <input 
               type="text" 
               placeholder="Search opportunities..." 
-              className="bg-background text-gray-300 text-sm rounded-md py-2 pl-10 pr-4 w-64 focus:outline-none focus:ring-1 focus:ring-primary"
+              className="bg-background text-foreground text-sm rounded-md py-2 pl-10 pr-4 w-64 focus:outline-none focus:ring-1 focus:ring-primary"
             />
-            <span className="material-icons absolute left-3 top-2 text-gray-400">search</span>
+            <span className="material-icons absolute left-3 top-2 text-muted-foreground">search</span>
           </div>
 
-          <button className="p-2 rounded-md text-gray-400 hover:text-white hover:bg-surface2" type="button">
+          <button className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted" type="button">
             <span className="material-icons">notifications</span>
           </button>
           
           <button 
-            className="p-2 rounded-md text-gray-400 hover:text-white hover:bg-surface2" 
+            className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted" 
             type="button"
             onClick={handleRefresh}
           >
@@ -96,9 +96,9 @@ export default function Header({
 
       <div className="flex flex-wrap items-center gap-4 mt-3">
         <div className="flex items-center">
-          <span className="mr-2 text-sm text-gray-400">Refresh rate:</span>
+          <span className="mr-2 text-sm text-muted-foreground">Refresh rate:</span>
           <select 
-            className="bg-background text-white text-sm rounded-md p-1 border border-gray-700 focus:outline-none focus:ring-1 focus:ring-primary"
+            className="bg-background text-foreground text-sm rounded-md p-1 border border-input focus:outline-none focus:ring-1 focus:ring-primary"
             value={refreshRate}
             onChange={handleRefreshRateChange}
           >
@@ -111,9 +111,9 @@ export default function Header({
         </div>
         
         <div className="flex items-center">
-          <span className="mr-2 text-sm text-gray-400">Strategy:</span>
+          <span className="mr-2 text-sm text-muted-foreground">Strategy:</span>
           <select 
-            className="bg-background text-white text-sm rounded-md p-1 border border-gray-700 focus:outline-none focus:ring-1 focus:ring-primary"
+            className="bg-background text-foreground text-sm rounded-md p-1 border border-input focus:outline-none focus:ring-1 focus:ring-primary"
             value={strategy}
             onChange={handleStrategyChange}
           >
@@ -124,9 +124,9 @@ export default function Header({
         </div>
 
         <div className="flex items-center">
-          <span className="mr-2 text-sm text-gray-400">Min profit:</span>
+          <span className="mr-2 text-sm text-muted-foreground">Min profit:</span>
           <select 
-            className="bg-background text-white text-sm rounded-md p-1 border border-gray-700 focus:outline-none focus:ring-1 focus:ring-primary"
+            className="bg-background text-foreground text-sm rounded-md p-1 border border-input focus:outline-none focus:ring-1 focus:ring-primary"
             value={minProfit.toString()}
             onChange={handleMinProfitChange}
           >
