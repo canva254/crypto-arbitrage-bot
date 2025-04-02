@@ -15,6 +15,7 @@ A sophisticated cryptocurrency arbitrage platform designed to help traders ident
 - Live execution of arbitrage opportunities
 - Dashboard with analytics and visualization
 - Risk assessment and management features
+- Automatic GitHub synchronization for code backup
 
 ## Technology Stack
 
@@ -70,6 +71,23 @@ The application will be available at `http://localhost:3000`.
 2. View active arbitrage opportunities in the Monitoring tab
 3. Use the Trade Simulator to test strategies without using real funds
 4. Execute real trades when you're confident in your strategy
+
+### Automatic GitHub Synchronization
+
+This project includes functionality to automatically sync changes to GitHub:
+
+1. To start automatic GitHub synchronization:
+   ```
+   bash start-auto-push-service.sh
+   ```
+   This will start a background service that commits and pushes changes to GitHub every 5 minutes.
+
+2. To stop the synchronization service:
+   ```
+   bash stop-auto-push-service.sh
+   ```
+
+3. The service requires the `GITHUB_TOKEN` environment variable to be set with a valid GitHub Personal Access Token.
 
 ## Risk Warning
 
