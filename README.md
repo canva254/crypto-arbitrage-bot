@@ -48,7 +48,7 @@ TEST_WALLET_PRIVATE_KEY=your_test_wallet_private_key
 
 1. Clone the repository:
 ```
-git clone https://github.com/your-username/crypto-arbitrage-bot.git
+git clone https://github.com/canva254/crypto-arbitrage-bot.git
 cd crypto-arbitrage-bot
 ```
 
